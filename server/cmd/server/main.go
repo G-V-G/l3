@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -39,22 +40,21 @@ func main() {
 				return
 			}
 			tools.WriteJsonOk(rw, res)
+		} else if r.Method == "POST" {
+			var f generalStore.Forum
+			if err := json.NewDecoder(r.Body).Decode(&f); err != nil {
+				log.Printf("Error decoding channel input: %s", err)
+				tools.WriteJsonBadRequest(rw, "bad JSON payload")
+				return
+			}
+			err := generalStore.CreateForum(f.Name, f.Topic)
+			if err == nil {
+				tools.WriteJsonOk(rw, &f)
+			} else {
+				log.Printf("Error inserting record: %s", err)
+				tools.WriteJsonInternalError(rw)
+			}
 		}
-		// else if r.Method == "POST" {
-		// 		var f forums.Forum
-		// 		if err := json.NewDecoder(r.Body).Decode(&f); err != nil {
-		// 			log.Printf("Error decoding channel input: %s", err)
-		// 			tools.WriteJsonBadRequest(rw, "bad JSON payload")
-		// 			return
-		// 		}
-		// 		err := store.CreateForum(f.Name, f.Topic)
-		// 		if err == nil {
-		// 			tools.WriteJsonOk(rw, &f)
-		// 		} else {
-		// 			log.Printf("Error inserting record: %s", err)
-		// 			tools.WriteJsonInternalError(rw)
-		// 		}
-		// 	}
 	})
 
 	// http.HandleFunc("/users", func(rw http.ResponseWriter, r *http.Request) {
