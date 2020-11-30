@@ -9,10 +9,7 @@ import (
 
 	db "github.com/G-V-G/l3/server/db"
 	generalStore "github.com/G-V-G/l3/server/generalStore"
-
-	// forums "github.com/G-V-G/l3/server/forums"
 	tools "github.com/G-V-G/l3/server/tools"
-	// users "github.com/G-V-G/l3/server/users"
 )
 
 func NewDbConnection() (*sql.DB, error) {
