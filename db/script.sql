@@ -58,4 +58,3 @@
 	INSERT INTO "usersList" ("forumsID", "userID") VALUES (4, 1);
 	INSERT INTO "usersList" ("forumsID", "userID") VALUES (4, 2);
 	INSERT INTO "usersList" ("forumsID", "userID") VALUES (3, 3);
-	INSERT INTO "usersList" ("forumsID") VALUES (2);

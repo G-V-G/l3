@@ -11,6 +11,12 @@ type User struct {
 	Username string `json:"username"`
 }
 
+type FullUser struct {
+	Id        int      `json:"id"`
+	Username  string   `json:"username"`
+	Interests []string `json:"interests"`
+}
+
 type UserStore struct {
 	Db *sql.DB
 }
@@ -19,7 +25,7 @@ func NewUserStore(db *sql.DB) *UserStore {
 	return &UserStore{Db: db}
 }
 
-func (s *UserStore) ListUsers() ([]*User, error) {
+func (s *UserStore) ListUsers() ([]*FullUser, error) {
 	rows, err := s.Db.Query("SELECT * FROM users")
 	if err != nil {
 		return nil, err
@@ -35,10 +41,18 @@ func (s *UserStore) ListUsers() ([]*User, error) {
 		}
 		res = append(res, &u)
 	}
+
+	var fullUsers []*FullUser
 	if res == nil {
-		res = make([]*User, 0)
+		fullUsers = make([]*FullUser, 0)
+	} else {
+		for i := 0; i < len(res); i++ {
+			interests := s.GetUsersInterestByID(res[i].Id)
+			fullUser := FullUser{Id: res[i].Id, Username: res[i].Username, Interests: interests}
+			fullUsers = append(fullUsers, &fullUser)
+		}
 	}
-	return res, nil
+	return fullUsers, nil
 }
 
 func (s *UserStore) FindUserByName(name string) []User {
@@ -68,6 +82,7 @@ func (s *UserStore) FindUserByName(name string) []User {
 }
 
 func (s *UserStore) CreateUser(username string, interests []string) error {
+	store := NewForumStore(s.Db)
 	if len(username) < 0 {
 		return fmt.Errorf("Username is not provided")
 	}
@@ -77,7 +92,10 @@ func (s *UserStore) CreateUser(username string, interests []string) error {
 	for i := 0; i < len(interests); i++ {
 		_, err = s.Db.Exec(`INSERT INTO "interestList" ("interest", "userID") VALUES ($1, $2)`,
 			interests[i], user[0].Id)
-		// TODO: search through topics in forums to add users to lists
+		forum, indicate := store.FindForumByTopic(interests[i])
+		if indicate == nil {
+			err = store.AddUserToForum(forum[0].Id, user[0].Id)
+		}
 	}
 	return err
 }
@@ -98,7 +116,7 @@ func (s *UserStore) GetUsersInterestByID(id int) []string {
 		id)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	defer rows.Close()
@@ -107,7 +125,7 @@ func (s *UserStore) GetUsersInterestByID(id int) []string {
 	for rows.Next() {
 		var i string
 		if err := rows.Scan(&i); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		res = append(res, i)
 	}

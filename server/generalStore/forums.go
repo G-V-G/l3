@@ -2,6 +2,7 @@ package generalStore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 )
@@ -13,6 +14,13 @@ type Forum struct {
 	UsersId []int  `json:"usersId"`
 }
 
+type FullForum struct {
+	Id    int     `json:"id"`
+	Name  string  `json:"name"`
+	Topic string  `json:"topic"`
+	Users []*User `json:"users"`
+}
+
 type ForumStore struct {
 	Db *sql.DB
 }
@@ -21,7 +29,7 @@ func NewForumStore(db *sql.DB) *ForumStore {
 	return &ForumStore{Db: db}
 }
 
-func (s *ForumStore) ListForums() ([]*Forum, error) {
+func (s *ForumStore) ListForums() ([]*FullForum, error) {
 	rows, err := s.Db.Query("SELECT * FROM forums")
 	if err != nil {
 		return nil, err
@@ -37,10 +45,18 @@ func (s *ForumStore) ListForums() ([]*Forum, error) {
 		}
 		res = append(res, &f)
 	}
+
+	var fullForums []*FullForum
 	if res == nil {
-		res = make([]*Forum, 0)
+		fullForums = make([]*FullForum, 0)
+	} else {
+		for i := 0; i < len(res); i++ {
+			users := s.GetForumUsersByID(res[i].Id)
+			fullForum := FullForum{Id: res[i].Id, Name: res[i].Name, Users: users}
+			fullForums = append(fullForums, &fullForum)
+		}
 	}
-	return res, nil
+	return fullForums, nil
 }
 
 func (s *ForumStore) FindForumByName(name string) []*Forum {
@@ -67,6 +83,32 @@ func (s *ForumStore) FindForumByName(name string) []*Forum {
 	}
 
 	return res
+}
+
+func (s *ForumStore) FindForumByTopic(name string) ([]*Forum, error) {
+	if len(name) < 0 {
+		log.Fatal("Topic name is not provided")
+	}
+	rows, err := s.Db.Query(`SELECT * FROM forums where "topicKeyword" = $1`, name)
+	if err != nil {
+		log.Println(err)
+	}
+
+	defer rows.Close()
+
+	var res []*Forum
+	for rows.Next() {
+		var f Forum
+		if err := rows.Scan(&f.Id, &f.Name, &f.Topic); err != nil {
+			log.Println(err)
+		}
+		res = append(res, &f)
+	}
+	if res == nil {
+		res = make([]*Forum, 0)
+		return res, errors.New("no such forum")
+	}
+	return res, nil
 }
 
 func (s *ForumStore) CreateForum(name, topicKeyword string) error {
@@ -112,7 +154,7 @@ func (s *ForumStore) GetForumUsersByID(id int) []*User {
 	for rows.Next() {
 		var u User
 		if err := rows.Scan(&u.Id, &u.Username); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		res = append(res, &u)
 	}
@@ -121,4 +163,9 @@ func (s *ForumStore) GetForumUsersByID(id int) []*User {
 	}
 
 	return res
+}
+
+func (s *ForumStore) AddUserToForum(idForum, idUser int) error {
+	_, err := s.Db.Exec(`INSERT INTO "usersList" ("forumsID", "userID") VALUES ($1, $2)`, idForum, idUser)
+	return err
 }

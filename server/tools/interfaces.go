@@ -4,7 +4,7 @@ type Username struct {
 	Username string `json:"username"`
 }
 
-type FullUser struct {
+type User struct {
 	Username  string   `json:"username"`
 	Interests []string `json:"interests"`
 }
