@@ -52,7 +52,11 @@ func (s *ForumStore) ListForums() ([]*FullForum, error) {
 	} else {
 		for i := 0; i < len(res); i++ {
 			users := s.GetForumUsersByID(res[i].Id)
-			fullForum := FullForum{Id: res[i].Id, Name: res[i].Name, Users: users}
+			fullForum := FullForum{
+				Id:    res[i].Id,
+				Name:  res[i].Name,
+				Topic: res[i].Topic,
+				Users: users}
 			fullForums = append(fullForums, &fullForum)
 		}
 	}
