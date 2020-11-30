@@ -1,11 +1,9 @@
-package forums
+package generalStore
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
-
-	users "github.com/G-V-G/l3/server/users"
 )
 
 type Forum struct {
@@ -81,7 +79,7 @@ func (s *ForumStore) CreateForum(name, topicKeyword string) error {
 	return err
 }
 
-func (s *ForumStore) GetForumUsersByID(id int) []*users.User {
+func (s *ForumStore) GetForumUsersByID(id int) []*User {
 	if id < 1 {
 		log.Fatal("ID is incorrect")
 	}
@@ -110,16 +108,16 @@ func (s *ForumStore) GetForumUsersByID(id int) []*users.User {
 
 	defer rows.Close()
 
-	var res []*users.User
+	var res []*User
 	for rows.Next() {
-		var u users.User
+		var u User
 		if err := rows.Scan(&u.Id, &u.Username); err != nil {
 			log.Fatal(err)
 		}
 		res = append(res, &u)
 	}
 	if res == nil {
-		res = make([]*users.User, 0)
+		res = make([]*User, 0)
 	}
 
 	return res

@@ -1,4 +1,4 @@
-package users
+package generalStore
 
 import (
 	"database/sql"
