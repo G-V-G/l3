@@ -2,6 +2,7 @@ package generalStore
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 )
@@ -55,13 +56,23 @@ func (s *UserStore) ListUsers() ([]*FullUser, error) {
 	return fullUsers, nil
 }
 
-func (s *UserStore) FindUserByName(name string) []*FullUser {
+func (s *UserStore) FindUserByName(name string) ([]*FullUser, error) {
+	var textError string
+	var err error
+	var fullUsers []*FullUser
+
 	if len(name) < 0 {
-		log.Fatal("Forum name is not provided")
+		textError = "User name is not provided"
+		err = errors.New(textError)
+		fullUsers = make([]*FullUser, 0)
+		log.Println(textError)
 	}
 	rows, err := s.Db.Query(`SELECT * FROM users where "name" = $1`, name)
 	if err != nil {
-		log.Fatal(err)
+		textError = "There is no such user"
+		err = errors.New(textError)
+		fullUsers = make([]*FullUser, 0)
+		log.Println(textError)
 	}
 
 	defer rows.Close()
@@ -70,22 +81,25 @@ func (s *UserStore) FindUserByName(name string) []*FullUser {
 	for rows.Next() {
 		var u User
 		if err := rows.Scan(&u.Id, &u.Username); err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		res = append(res, &u)
 	}
-	var fullUsers []*FullUser
-	
+
 	if res == nil {
+		textError = "No such user"
+		err = errors.New(textError)
 		fullUsers = make([]*FullUser, 0)
+		log.Println(textError)
 	} else {
 		for i := 0; i < len(res); i++ {
 			interests := s.GetUsersInterestByID(res[i].Id)
 			fullUser := FullUser{Id: res[i].Id, Username: res[i].Username, Interests: interests}
 			fullUsers = append(fullUsers, &fullUser)
 		}
+		err = nil
 	}
-	return fullUsers
+	return fullUsers, err
 }
 
 func (s *UserStore) CreateUser(username string, interests []string) error {
@@ -94,7 +108,7 @@ func (s *UserStore) CreateUser(username string, interests []string) error {
 		return fmt.Errorf("Username is not provided")
 	}
 	_, err := s.Db.Exec(`INSERT INTO users (name) VALUES ($1)`, username)
-	user := s.FindUserByName(username)
+	user, err := s.FindUserByName(username)
 	log.Println(interests)
 	for i := 0; i < len(interests); i++ {
 		_, err = s.Db.Exec(`INSERT INTO "interestList" ("interest", "userID") VALUES ($1, $2)`,

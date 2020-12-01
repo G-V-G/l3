@@ -73,7 +73,8 @@ func main() {
 				return
 			}
 			if err := json.Unmarshal(body, &fu); err != nil {
-				log.Fatal(err)
+				log.Println(err)
+				tools.WriteJsonBadRequest(rw, err.Error())
 			}
 			err = store.CreateUser(fu.Username, fu.Interests)
 			if err == nil {
@@ -95,11 +96,15 @@ func main() {
 				return
 			}
 			if err := json.Unmarshal(body, &u); err != nil {
-				log.Fatal(err)
+				tools.WriteJsonBadRequest(rw, err.Error())
 			}
-			res := store.FindUserByName(u.Username)
-			tools.WriteJsonOk(rw, res)
-		} 
+			res, err := store.FindUserByName(u.Username)
+			if err != nil {
+				tools.WriteJsonBadRequest(rw, err.Error())
+			} else {
+				tools.WriteJsonOk(rw, res)
+			}
+		}
 	})
 
 	http.HandleFunc("/forum", func(rw http.ResponseWriter, r *http.Request) {
@@ -112,11 +117,15 @@ func main() {
 				return
 			}
 			if err := json.Unmarshal(body, &f); err != nil {
-				log.Fatal(err)
+				tools.WriteJsonBadRequest(rw, err.Error())
 			}
-			res := store.FindForumByName(f.Name)
-			tools.WriteJsonOk(rw, res)
-		} 
-		})
+			res, err := store.FindForumByName(f.Name)
+			if err != nil {
+				tools.WriteJsonBadRequest(rw, err.Error())
+			} else {
+				tools.WriteJsonOk(rw, res)
+			}
+		}
+	})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

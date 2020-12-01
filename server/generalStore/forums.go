@@ -60,16 +60,25 @@ func (s *ForumStore) ListForums() ([]*FullForum, error) {
 			fullForums = append(fullForums, &fullForum)
 		}
 	}
-	return fullForums, nil
+	return fullForums, err
 }
 
-func (s *ForumStore) FindForumByName(name string) []*FullForum {
+func (s *ForumStore) FindForumByName(name string) ([]*FullForum, error) {
+	var textError string
+	var err error
+	var fullForums []*FullForum
+
 	if len(name) < 0 {
-		log.Fatal("Forum name is not provided")
+		textError = "Forum name is not provided"
+		err = errors.New(textError)
+		fullForums = make([]*FullForum, 0)
+		log.Println(textError)
 	}
 	rows, err := s.Db.Query(`SELECT * FROM forums where "name" = $1`, name)
 	if err != nil {
-		log.Fatal(err)
+		textError = "There is no such forum"
+		err = errors.New(textError)
+		log.Println(textError)
 	}
 
 	defer rows.Close()
@@ -77,13 +86,15 @@ func (s *ForumStore) FindForumByName(name string) []*FullForum {
 	var res []*Forum
 	for rows.Next() {
 		var f Forum
-		if err := rows.Scan(&f.Id, &f.Name, &f.Topic); err != nil {
-			log.Fatal(err)
+		if err = rows.Scan(&f.Id, &f.Name, &f.Topic); err != nil {
+			log.Println(err)
 		}
 		res = append(res, &f)
 	}
-	var fullForums []*FullForum
 	if res == nil {
+		textError = "No such forum"
+		err = errors.New(textError)
+		log.Println(textError)
 		fullForums = make([]*FullForum, 0)
 	} else {
 		for i := 0; i < len(res); i++ {
@@ -95,13 +106,14 @@ func (s *ForumStore) FindForumByName(name string) []*FullForum {
 				Users: users}
 			fullForums = append(fullForums, &fullForum)
 		}
+		err = nil
 	}
-	return fullForums
+	return fullForums, err
 }
 
 func (s *ForumStore) FindForumByTopic(name string) ([]*Forum, error) {
 	if len(name) < 0 {
-		log.Fatal("Topic name is not provided")
+		log.Println("Topic name is not provided")
 	}
 	rows, err := s.Db.Query(`SELECT * FROM forums where "topicKeyword" = $1`, name)
 	if err != nil {
@@ -130,7 +142,7 @@ func (s *ForumStore) CreateForum(name, topicKeyword string) error {
 		return fmt.Errorf("Forum name is not provided")
 	}
 	_, err := s.Db.Exec(`INSERT INTO forums (name, "topicKeyword") VALUES ($1, $2)`, name, topicKeyword)
-	forum := s.FindForumByName(name)
+	forum, err := s.FindForumByName(name)
 	_, err = s.Db.Exec(`INSERT INTO "usersList" ("forumsID") VALUES ($1)`, forum[0].Id)
 	return err
 }
