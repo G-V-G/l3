@@ -17,11 +17,11 @@ func (gs *GeneralStore) ListForums() ([]*FullForum, error) {
 	return gs.FStore.ListForums()
 }
 
-func (gs *GeneralStore) FindForumByName(name string) []*Forum {
+func (gs *GeneralStore) FindForumByName(name string) []*FullForum {
 	return gs.FStore.FindForumByName(name)
 }
 
-func (gs *GeneralStore) FindUserByName(name string) []*User {
+func (gs *GeneralStore) FindUserByName(name string) []*FullUser {
 	return gs.UStore.FindUserByName(name)
 }
 

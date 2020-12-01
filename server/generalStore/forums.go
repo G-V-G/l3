@@ -63,7 +63,7 @@ func (s *ForumStore) ListForums() ([]*FullForum, error) {
 	return fullForums, nil
 }
 
-func (s *ForumStore) FindForumByName(name string) []*Forum {
+func (s *ForumStore) FindForumByName(name string) []*FullForum {
 	if len(name) < 0 {
 		log.Fatal("Forum name is not provided")
 	}
@@ -82,11 +82,21 @@ func (s *ForumStore) FindForumByName(name string) []*Forum {
 		}
 		res = append(res, &f)
 	}
+	var fullForums []*FullForum
 	if res == nil {
-		res = make([]*Forum, 0)
+		fullForums = make([]*FullForum, 0)
+	} else {
+		for i := 0; i < len(res); i++ {
+			users := s.GetForumUsersByID(res[i].Id)
+			fullForum := FullForum{
+				Id:    res[i].Id,
+				Name:  res[i].Name,
+				Topic: res[i].Topic,
+				Users: users}
+			fullForums = append(fullForums, &fullForum)
+		}
 	}
-
-	return res
+	return fullForums
 }
 
 func (s *ForumStore) FindForumByTopic(name string) ([]*Forum, error) {

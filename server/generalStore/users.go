@@ -55,7 +55,7 @@ func (s *UserStore) ListUsers() ([]*FullUser, error) {
 	return fullUsers, nil
 }
 
-func (s *UserStore) FindUserByName(name string) []User {
+func (s *UserStore) FindUserByName(name string) []*FullUser {
 	if len(name) < 0 {
 		log.Fatal("Forum name is not provided")
 	}
@@ -66,19 +66,26 @@ func (s *UserStore) FindUserByName(name string) []User {
 
 	defer rows.Close()
 
-	var res []User
+	var res []*User
 	for rows.Next() {
 		var u User
 		if err := rows.Scan(&u.Id, &u.Username); err != nil {
 			log.Fatal(err)
 		}
-		res = append(res, u)
+		res = append(res, &u)
 	}
+	var fullUsers []*FullUser
+	
 	if res == nil {
-		res = make([]User, 0)
+		fullUsers = make([]*FullUser, 0)
+	} else {
+		for i := 0; i < len(res); i++ {
+			interests := s.GetUsersInterestByID(res[i].Id)
+			fullUser := FullUser{Id: res[i].Id, Username: res[i].Username, Interests: interests}
+			fullUsers = append(fullUsers, &fullUser)
+		}
 	}
-
-	return res
+	return fullUsers
 }
 
 func (s *UserStore) CreateUser(username string, interests []string) error {

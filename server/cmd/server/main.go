@@ -84,5 +84,39 @@ func main() {
 			}
 		}
 	})
+
+	http.HandleFunc("/user", func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			var u tools.Username
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				log.Printf("Error decoding channel input: %s", err)
+				tools.WriteJsonBadRequest(rw, "bad JSON payload")
+				return
+			}
+			if err := json.Unmarshal(body, &u); err != nil {
+				log.Fatal(err)
+			}
+			res := store.FindUserByName(u.Username)
+			tools.WriteJsonOk(rw, res)
+		} 
+	})
+
+	http.HandleFunc("/forum", func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			var f tools.Forumname
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				log.Printf("Error decoding channel input: %s", err)
+				tools.WriteJsonBadRequest(rw, "bad JSON payload")
+				return
+			}
+			if err := json.Unmarshal(body, &f); err != nil {
+				log.Fatal(err)
+			}
+			res := store.FindForumByName(f.Name)
+			tools.WriteJsonOk(rw, res)
+		} 
+		})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
