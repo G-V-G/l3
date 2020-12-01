@@ -21,12 +21,12 @@ func (gs *GeneralStore) FindForumByName(name string) []*Forum {
 	return gs.FStore.FindForumByName(name)
 }
 
-func (gs *GeneralStore) CreateForum(name, topicKeyword string) error {
-	return gs.FStore.CreateForum(name, topicKeyword)
+func (gs *GeneralStore) FindUserByName(name string) []*User {
+	return gs.UStore.FindUserByName(name)
 }
 
-func (gs *GeneralStore) GetForumUsersByID(id int) []*User {
-	return gs.FStore.GetForumUsersByID(id)
+func (gs *GeneralStore) CreateForum(name, topicKeyword string) error {
+	return gs.FStore.CreateForum(name, topicKeyword)
 }
 
 func (gs *GeneralStore) ListUsers() ([]*FullUser, error) {
@@ -35,8 +35,4 @@ func (gs *GeneralStore) ListUsers() ([]*FullUser, error) {
 
 func (gs *GeneralStore) CreateUser(username string, interests []string) error {
 	return gs.UStore.CreateUser(username, interests)
-}
-
-func (gs *GeneralStore) GetUsersInterestByID(id int) []string {
-	return gs.UStore.GetUsersInterestByID(id)
 }
