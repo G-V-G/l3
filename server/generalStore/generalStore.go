@@ -13,15 +13,15 @@ func NewGeneralStore(db *sql.DB) *GeneralStore {
 	return &GeneralStore{FStore: fstore, UStore: ustore}
 }
 
-func (gs *GeneralStore) ListForums() ([]*FullForum, error) {
+func (gs *GeneralStore) ListForums() ([]*Forum, error) {
 	return gs.FStore.ListForums()
 }
 
-func (gs *GeneralStore) FindForumByName(name string) ([]*FullForum, error) {
+func (gs *GeneralStore) FindForumByName(name string) ([]*Forum, error) {
 	return gs.FStore.FindForumByName(name)
 }
 
-func (gs *GeneralStore) FindUserByName(name string) ([]*FullUser, error) {
+func (gs *GeneralStore) FindUserByName(name string) ([]*User, error) {
 	return gs.UStore.FindUserByName(name)
 }
 
@@ -29,7 +29,7 @@ func (gs *GeneralStore) CreateForum(name, topicKeyword string) error {
 	return gs.FStore.CreateForum(name, topicKeyword)
 }
 
-func (gs *GeneralStore) ListUsers() ([]*FullUser, error) {
+func (gs *GeneralStore) ListUsers() ([]*User, error) {
 	return gs.UStore.ListUsers()
 }
 

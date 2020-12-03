@@ -4,16 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 )
 
 type User struct {
-	Id       int    `json:"id"`
-	Username string `json:"username"`
-}
-
-type FullUser struct {
-	Id        int      `json:"id"`
+	Id        int      `json:"-"`
 	Username  string   `json:"username"`
 	Interests []string `json:"interests"`
 }
@@ -26,7 +20,7 @@ func NewUserStore(db *sql.DB) *UserStore {
 	return &UserStore{Db: db}
 }
 
-func (s *UserStore) ListUsers() ([]*FullUser, error) {
+func (s *UserStore) ListUsers() ([]*User, error) {
 	rows, err := s.Db.Query("SELECT * FROM users")
 	if err != nil {
 		return nil, err
@@ -43,36 +37,37 @@ func (s *UserStore) ListUsers() ([]*FullUser, error) {
 		res = append(res, &u)
 	}
 
-	var fullUsers []*FullUser
+	var fullUsers []*User
 	if res == nil {
-		fullUsers = make([]*FullUser, 0)
+		fullUsers = make([]*User, 0)
 	} else {
 		for i := 0; i < len(res); i++ {
-			interests := s.GetUsersInterestByID(res[i].Id)
-			fullUser := FullUser{Id: res[i].Id, Username: res[i].Username, Interests: interests}
+			interests, err := s.GetUsersInterestByID(res[i].Id)
+			if err != nil {
+				return nil, err
+			}
+			fullUser := User{Id: res[i].Id, Username: res[i].Username, Interests: interests}
 			fullUsers = append(fullUsers, &fullUser)
 		}
 	}
 	return fullUsers, nil
 }
 
-func (s *UserStore) FindUserByName(name string) ([]*FullUser, error) {
+func (s *UserStore) FindUserByName(name string) ([]*User, error) {
 	var textError string
 	var err error
-	var fullUsers []*FullUser
+	var fullUsers []*User
 
 	if len(name) < 0 {
 		textError = "User name is not provided"
 		err = errors.New(textError)
-		fullUsers = make([]*FullUser, 0)
-		log.Println(textError)
+		return nil, err
 	}
-	rows, err := s.Db.Query(`SELECT * FROM users where "name" = $1`, name)
+	rows, err := s.Db.Query(`SELECT * FROM users where name = $1`, name)
 	if err != nil {
 		textError = "There is no such user"
 		err = errors.New(textError)
-		fullUsers = make([]*FullUser, 0)
-		log.Println(textError)
+		return nil, err
 	}
 
 	defer rows.Close()
@@ -81,7 +76,7 @@ func (s *UserStore) FindUserByName(name string) ([]*FullUser, error) {
 	for rows.Next() {
 		var u User
 		if err := rows.Scan(&u.Id, &u.Username); err != nil {
-			log.Println(err)
+			return nil, err
 		}
 		res = append(res, &u)
 	}
@@ -89,16 +84,18 @@ func (s *UserStore) FindUserByName(name string) ([]*FullUser, error) {
 	if res == nil {
 		textError = "No such user"
 		err = errors.New(textError)
-		fullUsers = make([]*FullUser, 0)
-		log.Println(textError)
-	} else {
-		for i := 0; i < len(res); i++ {
-			interests := s.GetUsersInterestByID(res[i].Id)
-			fullUser := FullUser{Id: res[i].Id, Username: res[i].Username, Interests: interests}
-			fullUsers = append(fullUsers, &fullUser)
+		fullUsers = make([]*User, 0)
+		return nil, err
+	} 
+	for i := 0; i < len(res); i++ {
+		interests, err := s.GetUsersInterestByID(res[i].Id)
+		if err != nil {
+			return nil, err
 		}
-		err = nil
+		fullUser := User{Id: res[i].Id, Username: res[i].Username, Interests: interests}
+		fullUsers = append(fullUsers, &fullUser)
 	}
+	err = nil
 	return fullUsers, err
 }
 
@@ -109,9 +106,8 @@ func (s *UserStore) CreateUser(username string, interests []string) error {
 	}
 	_, err := s.Db.Exec(`INSERT INTO users (name) VALUES ($1)`, username)
 	user, err := s.FindUserByName(username)
-	log.Println(interests)
 	for i := 0; i < len(interests); i++ {
-		_, err = s.Db.Exec(`INSERT INTO "interestList" ("interest", "userID") VALUES ($1, $2)`,
+		_, err = s.Db.Exec(`INSERT INTO interestList (interest, userID) VALUES ($1, $2)`,
 			interests[i], user[0].Id)
 		forum, indicate := store.FindForumByTopic(interests[i])
 		if indicate == nil {
@@ -121,23 +117,23 @@ func (s *UserStore) CreateUser(username string, interests []string) error {
 	return err
 }
 
-func (s *UserStore) GetUsersInterestByID(id int) []string {
+func (s *UserStore) GetUsersInterestByID(id int) ([]string, error) {
 	if id < 1 {
-		log.Fatal("ID is incorrect")
+		return nil, fmt.Errorf("ID is incorrect")
 	}
 	rows, err := s.Db.Query(`
 	select
-		"interestList"."interest"
+		interestList.interest
 	from
-		users, "interestList"
+		users, interestList
 	where
-		"interestList"."userID" = users.id
+		interestList.userID = users.id
 	and
 		users.id = $1`,
 		id)
 
 	if err != nil {
-		log.Println(err)
+		return nil, err
 	}
 
 	defer rows.Close()
@@ -146,7 +142,7 @@ func (s *UserStore) GetUsersInterestByID(id int) []string {
 	for rows.Next() {
 		var i string
 		if err := rows.Scan(&i); err != nil {
-			log.Println(err)
+			return nil, err
 		}
 		res = append(res, i)
 	}
@@ -154,5 +150,5 @@ func (s *UserStore) GetUsersInterestByID(id int) []string {
 		res = make([]string, 0)
 	}
 
-	return res
+	return res, nil
 }

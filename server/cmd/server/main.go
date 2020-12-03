@@ -14,9 +14,9 @@ import (
 
 func NewDbConnection() (*sql.DB, error) {
 	conn := &db.Connection{
-		DbName:     "Forums",
+		DbName:     "lab3",
 		User:       "postgres",
-		Password:   "password",
+		Password:   "postgres",
 		Host:       "localhost",
 		DisableSSL: true,
 	}
