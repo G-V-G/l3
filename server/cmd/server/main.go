@@ -5,13 +5,13 @@ import (
 	"github.com/G-V-G/l3/server/db"
 )
 
-//ServerEnv for port and host
+// ServerEnv for port and host
 type ServerEnv struct {
 	Port int
 	Host string
 } 
 
-//NewDbConnection gives DB URI
+// NewDbConnection gives DB URI
 func NewDbConnection() (*sql.DB, error) {
 	conn := &db.Connection{
 		DbName:     "lab3",

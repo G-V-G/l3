@@ -5,7 +5,7 @@ import (
 	h "github.com/G-V-G/l3/server/handlers"
 )
 
-//ForumServer runs handlers
+// ForumServer runs handlers
 type ForumServer struct {
 	server *http.Server
 	Senv *ServerEnv
