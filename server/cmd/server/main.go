@@ -15,8 +15,8 @@ type ServerEnv struct {
 func NewDbConnection() (*sql.DB, error) {
 	conn := &db.Connection{
 		DbName:     "lab3",
-		User:       "postgres",
-		Password:   "postgres",
+		User:       "andrew1407",
+		Password:   "sasik",
 		Host:       "localhost",
 		DisableSSL: true,
 	}
@@ -24,7 +24,7 @@ func NewDbConnection() (*sql.DB, error) {
 }
 
 func main() {
-	senv := &ServerEnv{Port: 5000, Host: "localhost"}
+	senv := &ServerEnv{Port: 5000, Host: "192.168.1.6"}
 	server, err := NewServer(senv)
 	if err != nil {
 		panic(err)

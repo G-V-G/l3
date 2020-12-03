@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"net/url"
 
 	_ "github.com/lib/pq"
@@ -27,7 +26,6 @@ func (c *Connection) ConnectionURL() string {
 			"sslmode": []string{"disable"},
 		}.Encode()
 	}
-	fmt.Println(dbUrl)
 	return dbUrl.String()
 }
 

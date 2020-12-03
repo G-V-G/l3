@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"fmt"
 	h "github.com/G-V-G/l3/server/handlers"
 )
 
@@ -23,6 +24,7 @@ func (fs *ForumServer) Run() {
 	for route, handler := range handlersCollection {
 		http.Handle(route, handler)
 	}
-	runnable := fs.Senv.Host + ":" + string(fs.Senv.Port)
+	runnable := fs.Senv.Host + ":" + fmt.Sprint(fs.Senv.Port)
+	fmt.Printf("Server is running on port: %d, host: %s\n", fs.Senv.Port, fs.Senv.Host)
 	http.ListenAndServe(runnable, nil)
 }
