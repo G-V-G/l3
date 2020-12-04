@@ -19,6 +19,7 @@ const testData = [
 
 const sendTestResponses = async () => {
   const separator = '\n=========================================================\n';
+  console.log('\n')
   for (const [ method, comment, args ] of testData)
     try {
       console.log(comment, '\n');

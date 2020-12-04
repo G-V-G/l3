@@ -21,18 +21,15 @@ const makeRquest = (options, responseJSON = null) => new Promise((res, rej) => {
     response
       .setEncoding('utf-8')
       .on('data', data =>  (
-        resData.status === 200 &&
-        resData.status !== 201 ?
+        /^200|201|400|404|500$/.test(resData.status) ?
           resData.body = JSON.parse(data) :
-          resData.message = data.trim()
+          resData.body = data
       ))
-      .on('close', () => {
-        
-        return(
+      .on('close', () => (
         resData.status === 200 || 
         resData.status === 201 ?
           res(resData) : rej(resData)
-      )})
+      ))
   });
   servRespose
     .on('response', r => (resData.status = r.statusCode))
