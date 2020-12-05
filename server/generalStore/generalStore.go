@@ -1,6 +1,10 @@
 package generalStore
 
-import "database/sql"
+import (
+	"database/sql"
+	"github.com/G-V-G/l3/server/tools"
+	_ "github.com/lib/pq"
+)
 
 type GeneralStore struct {
 	FStore *ForumStore
@@ -13,15 +17,15 @@ func NewGeneralStore(db *sql.DB) *GeneralStore {
 	return &GeneralStore{FStore: fstore, UStore: ustore}
 }
 
-func (gs *GeneralStore) ListForums() ([]*Forum, error) {
+func (gs *GeneralStore) ListForums() ([]*tools.Forum, error) {
 	return gs.FStore.ListForums()
 }
 
-func (gs *GeneralStore) FindForumByName(name string) ([]*Forum, error) {
+func (gs *GeneralStore) FindForumByName(name string) ([]*tools.Forum, error) {
 	return gs.FStore.FindForumByName(name)
 }
 
-func (gs *GeneralStore) FindUserByName(name string) ([]*User, error) {
+func (gs *GeneralStore) FindUserByName(name string) ([]*tools.User, error) {
 	return gs.UStore.FindUserByName(name)
 }
 
@@ -29,7 +33,7 @@ func (gs *GeneralStore) CreateForum(name, topicKeyword string) error {
 	return gs.FStore.CreateForum(name, topicKeyword)
 }
 
-func (gs *GeneralStore) ListUsers() ([]*User, error) {
+func (gs *GeneralStore) ListUsers() ([]*tools.User, error) {
 	return gs.UStore.ListUsers()
 }
 

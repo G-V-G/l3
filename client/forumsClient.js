@@ -1,7 +1,7 @@
 const http = require('http');
 
 const connection = {
-  hostname: '192.168.1.3',
+  hostname: 'localhost',
   port: '5000'
 };
 

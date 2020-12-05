@@ -2,15 +2,10 @@ package generalStore
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
+	"github.com/G-V-G/l3/server/tools"
+	_ "github.com/lib/pq"
 )
-
-type User struct {
-	Id        int      `json:"-"`
-	Username  string   `json:"username"`
-	Interests []string `json:"interests"`
-}
 
 type UserStore struct {
 	Db *sql.DB
@@ -20,7 +15,7 @@ func NewUserStore(db *sql.DB) *UserStore {
 	return &UserStore{Db: db}
 }
 
-func (s *UserStore) ListUsers() ([]*User, error) {
+func (s *UserStore) ListUsers() ([]*tools.User, error) {
 	rows, err := s.Db.Query("SELECT * FROM users")
 	if err != nil {
 		return nil, err
@@ -28,54 +23,54 @@ func (s *UserStore) ListUsers() ([]*User, error) {
 
 	defer rows.Close()
 
-	var res []*User
+	var res []*tools.User
 	for rows.Next() {
-		var u User
-		if err := rows.Scan(&u.Id, &u.Username); err != nil {
+		var u tools.User
+		if err := rows.Scan(&u.Id, &u.Name); err != nil {
 			return nil, err
 		}
 		res = append(res, &u)
 	}
 
-	var fullUsers []*User
+	var fullUsers []*tools.User
 	if res == nil {
-		fullUsers = make([]*User, 0)
+		fullUsers = make([]*tools.User, 0)
 	} else {
 		for i := 0; i < len(res); i++ {
 			interests, err := s.GetUsersInterestByID(res[i].Id)
 			if err != nil {
 				return nil, err
 			}
-			fullUser := User{Id: res[i].Id, Username: res[i].Username, Interests: interests}
+			fullUser := tools.User{Id: res[i].Id, Name: res[i].Name, Interests: interests}
 			fullUsers = append(fullUsers, &fullUser)
 		}
 	}
 	return fullUsers, nil
 }
 
-func (s *UserStore) FindUserByName(name string) ([]*User, error) {
+func (s *UserStore) FindUserByName(name string) ([]*tools.User, error) {
 	var textError string
 	var err error
-	var fullUsers []*User
+	var fullUsers []*tools.User
 
-	if len(name) < 0 {
+	if len(name) == 0 {
 		textError = "User name is not provided"
-		err = errors.New(textError)
+		err = fmt.Errorf(textError)
 		return nil, err
 	}
 	rows, err := s.Db.Query(`SELECT * FROM users where name = $1`, name)
 	if err != nil {
 		textError = "There is no such user"
-		err = errors.New(textError)
+		err = fmt.Errorf(textError)
 		return nil, err
 	}
 
 	defer rows.Close()
 
-	var res []*User
+	var res []*tools.User
 	for rows.Next() {
-		var u User
-		if err := rows.Scan(&u.Id, &u.Username); err != nil {
+		var u tools.User
+		if err := rows.Scan(&u.Id, &u.Name); err != nil {
 			return nil, err
 		}
 		res = append(res, &u)
@@ -83,8 +78,8 @@ func (s *UserStore) FindUserByName(name string) ([]*User, error) {
 
 	if res == nil {
 		textError = "No such user"
-		err = errors.New(textError)
-		fullUsers = make([]*User, 0)
+		err = fmt.Errorf(textError)
+		fullUsers = make([]*tools.User, 0)
 		return nil, err
 	} 
 	for i := 0; i < len(res); i++ {
@@ -92,7 +87,7 @@ func (s *UserStore) FindUserByName(name string) ([]*User, error) {
 		if err != nil {
 			return nil, err
 		}
-		fullUser := User{Id: res[i].Id, Username: res[i].Username, Interests: interests}
+		fullUser := tools.User{Id: res[i].Id, Name: res[i].Name, Interests: interests}
 		fullUsers = append(fullUsers, &fullUser)
 	}
 	err = nil
@@ -101,10 +96,21 @@ func (s *UserStore) FindUserByName(name string) ([]*User, error) {
 
 func (s *UserStore) CreateUser(username string, interests []string) error {
 	store := NewForumStore(s.Db)
-	if len(username) < 0 {
+	if len(username) == 0 {
 		return fmt.Errorf("Username is not provided")
 	}
+	if len(interests) == 0 {
+		return fmt.Errorf("Interests are not provided")
+	}
+	for _, interest := range interests {
+		if len(interest) == 0 {
+			return fmt.Errorf("Interest cannot be empty")
+		}
+	}
 	_, err := s.Db.Exec(`INSERT INTO users (name) VALUES ($1)`, username)
+	if err != nil {
+		return fmt.Errorf("User with this name already exists")
+	}
 	user, err := s.FindUserByName(username)
 	for i := 0; i < len(interests); i++ {
 		_, err = s.Db.Exec(`INSERT INTO interestList (interest, userID) VALUES ($1, $2)`,

@@ -11,21 +11,20 @@ import (
 func addForum(db *gs.GeneralStore, rw http.ResponseWriter, req *http.Request) {
 	var forum tools.Forum
 	if err := json.NewDecoder(req.Body).Decode(&forum); err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		tools.WriteJsonBadRequest(rw, err.Error())
 		return
 	}
 	if err := db.CreateForum(forum.Name, forum.Topic); err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		tools.WriteJsonBadRequest(rw, err.Error())
 	} else {
 		rw.WriteHeader(http.StatusCreated)
 	}
 }
 
 func getForums(db *gs.GeneralStore, rw http.ResponseWriter, req *http.Request) {
-	res, err := db.ListForums()
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+	if res, err := db.ListForums(); err != nil {
+		tools.WriteJsonInternalError(rw, err.Error())
+	} else {
+		tools.WriteJsonOk(rw, res)
 	}
-	tools.WriteJsonOk(rw, res)
 }

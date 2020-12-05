@@ -1,24 +1,23 @@
 # l3
 
-Run sql script:
+**Run sql script:**
 
 `cd psql -f db/script.sql ...`
 
-Or (in psql)
+**Or (in psql):**
 
 `\i db/script.sql`
 
-Run server:
+**Run server:**
 
 `cd server && go run ./cmd/server -h <host> -p <port>`
 
-Run client (test requests):
+**Run client (test requests):**
 
 `node client/example`
 
-Result:
+*Result:*
 
-`
 Adding a new forum (no args) 
 
 Error: { status: 400, body: { message: 'Forum name is not provided' } } 
@@ -225,4 +224,3 @@ Result:
 }
 
 =========================================================
-`

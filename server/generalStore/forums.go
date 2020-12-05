@@ -2,16 +2,10 @@ package generalStore
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
+	"github.com/G-V-G/l3/server/tools"
+	_ "github.com/lib/pq"
 )
-
-type Forum struct {
-	Id      int    `json:"-"`
-	Name    string `json:"name"`
-	Topic   string `json:"topic"`
-	Users []string `json:"users"`
-}
 
 type ForumStore struct {
 	Db *sql.DB
@@ -21,7 +15,7 @@ func NewForumStore(db *sql.DB) *ForumStore {
 	return &ForumStore{Db: db}
 }
 
-func (s *ForumStore) ListForums() ([]*Forum, error) {
+func (s *ForumStore) ListForums() ([]*tools.Forum, error) {
 	rows, err := s.Db.Query("SELECT * FROM forums")
 	if err != nil {
 		return nil, err
@@ -29,25 +23,25 @@ func (s *ForumStore) ListForums() ([]*Forum, error) {
 
 	defer rows.Close()
 
-	var res []*Forum
+	var res []*tools.Forum
 	for rows.Next() {
-		var f Forum
+		var f tools.Forum
 		if err := rows.Scan(&f.Id, &f.Name, &f.Topic); err != nil {
 			return nil, err
 		}
 		res = append(res, &f)
 	}
 
-	var fullForums []*Forum
+	var fullForums []*tools.Forum
 	if res == nil {
-		fullForums = make([]*Forum, 0)
+		fullForums = make([]*tools.Forum, 0)
 	} else {
 		for i := 0; i < len(res); i++ {
 			users, err := s.GetForumUsersByID(res[i].Id)
 			if err != nil {
 				return nil, err
 			}
-			fullForum := Forum{
+			fullForum := tools.Forum{
 				Id:    res[i].Id,
 				Name:  res[i].Name,
 				Topic: res[i].Topic,
@@ -58,29 +52,29 @@ func (s *ForumStore) ListForums() ([]*Forum, error) {
 	return fullForums, err
 }
 
-func (s *ForumStore) FindForumByName(name string) ([]*Forum, error) {
+func (s *ForumStore) FindForumByName(name string) ([]*tools.Forum, error) {
 	var textError string
 	var err error
-	var fullForums []*Forum
+	var fullForums []*tools.Forum
 
 	if len(name) < 0 {
 		textError = "Forum name is not provided"
-		err = errors.New(textError)
-		fullForums = make([]*Forum, 0)
+		err = fmt.Errorf(textError)
+		fullForums = make([]*tools.Forum, 0)
 		return nil, err
 	}
 	rows, err := s.Db.Query(`SELECT * FROM forums where name = $1`, name)
 	if err != nil {
 		textError = "There is no such forum"
-		err = errors.New(textError)
+		err = fmt.Errorf(textError)
 		return nil, err
 	}
 
 	defer rows.Close()
 
-	var res []*Forum
+	var res []*tools.Forum
 	for rows.Next() {
-		var f Forum
+		var f tools.Forum
 		if err = rows.Scan(&f.Id, &f.Name, &f.Topic); err != nil {
 			return nil, err
 		}
@@ -88,7 +82,7 @@ func (s *ForumStore) FindForumByName(name string) ([]*Forum, error) {
 	}
 	if res == nil {
 		textError = "No such forum"
-		err = errors.New(textError)
+		err = fmt.Errorf(textError)
 		return nil, err
 	}
 	for i := 0; i < len(res); i++ {
@@ -96,7 +90,7 @@ func (s *ForumStore) FindForumByName(name string) ([]*Forum, error) {
 		if err != nil {
 			return nil, err
 		}
-		fullForum := Forum{
+		fullForum := tools.Forum{
 			Id:    res[i].Id,
 			Name:  res[i].Name,
 			Topic: res[i].Topic,
@@ -106,8 +100,8 @@ func (s *ForumStore) FindForumByName(name string) ([]*Forum, error) {
 	return fullForums, nil
 }
 
-func (s *ForumStore) FindForumByTopic(name string) ([]*Forum, error) {
-	if len(name) < 0 {
+func (s *ForumStore) FindForumByTopic(name string) ([]*tools.Forum, error) {
+	if len(name) == 0 {
 		return nil, fmt.Errorf("Topic name is not provided")
 	}
 	rows, err := s.Db.Query(`SELECT * FROM forums where topicKeyword = $1`, name)
@@ -117,26 +111,32 @@ func (s *ForumStore) FindForumByTopic(name string) ([]*Forum, error) {
 
 	defer rows.Close()
 
-	var res []*Forum
+	var res []*tools.Forum
 	for rows.Next() {
-		var f Forum
+		var f tools.Forum
 		if err := rows.Scan(&f.Id, &f.Name, &f.Topic); err != nil {
 			return nil, err
 		}
 		res = append(res, &f)
 	}
 	if res == nil {
-		res = make([]*Forum, 0)
-		return res, errors.New("no such forum")
+		res = make([]*tools.Forum, 0)
+		return res, fmt.Errorf("no such forum")
 	}
 	return res, nil
 }
 
 func (s *ForumStore) CreateForum(name, topicKeyword string) error {
-	if len(name) < 0 {
+	if len(name) == 0 {
 		return fmt.Errorf("Forum name is not provided")
 	}
+	if len(topicKeyword) == 0 {
+		return fmt.Errorf("Topic keyword name is not provided")
+	}
 	_, err := s.Db.Exec(`INSERT INTO forums (name, topicKeyword) VALUES ($1, $2)`, name, topicKeyword)
+	if err != nil {
+		return fmt.Errorf("Forum with this name or topic already exists")
+	}
 	forum, err := s.FindForumByName(name)
 	_, err = s.Db.Exec(`INSERT INTO usersList (forumsID) VALUES ($1)`, forum[0].Id)
 	return err

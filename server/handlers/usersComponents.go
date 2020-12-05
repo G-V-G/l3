@@ -11,21 +11,20 @@ import (
 func addUser(db *gs.GeneralStore, rw http.ResponseWriter, req *http.Request) {
 	var user tools.User
 	if err := json.NewDecoder(req.Body).Decode(&user); err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		tools.WriteJsonBadRequest(rw, err.Error())
 		return
 	}
 	if err := db.CreateUser(user.Name, user.Interests); err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		tools.WriteJsonBadRequest(rw, err.Error())
 	} else {
 		rw.WriteHeader(http.StatusCreated)
 	}
 }
 
 func getUsers(db *gs.GeneralStore, rw http.ResponseWriter, req *http.Request) {
-	res, err := db.ListUsers()
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+	if res, err := db.ListUsers(); err != nil {
+		tools.WriteJsonInternalError(rw, err.Error())
+	} else {
+		tools.WriteJsonOk(rw, res)
 	}
-	tools.WriteJsonOk(rw, res)
 }

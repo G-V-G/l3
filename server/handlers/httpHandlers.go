@@ -43,15 +43,14 @@ func (h *Handlers) GetUser(rw http.ResponseWriter, req *http.Request) {
 	}
 	var resName tools.ResponseName
 	if err := json.NewDecoder(req.Body).Decode(&resName); err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		tools.WriteJsonBadRequest(rw, err.Error())
 		return
 	}
-	res, err := h.db.FindUserByName(resName.Name)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+	if res, err := h.db.FindUserByName(resName.Name); err != nil {
+		tools.WriteJsonBadRequest(rw, err.Error())
+	} else {
+		tools.WriteJsonOk(rw, res)
 	}
-	tools.WriteJsonOk(rw, res)
 }
 
 // GetForum for POST method
@@ -62,13 +61,12 @@ func (h *Handlers) GetForum(rw http.ResponseWriter, req *http.Request) {
 	}
 	var resName tools.ResponseName
 	if err := json.NewDecoder(req.Body).Decode(&resName); err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		tools.WriteJsonBadRequest(rw, err.Error())
 		return
 	}
-	res, err := h.db.FindForumByName(resName.Name)
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+	if res, err := h.db.FindForumByName(resName.Name); err != nil {
+		tools.WriteJsonBadRequest(rw, err.Error())
+	} else {
+		tools.WriteJsonOk(rw, res)
 	}
-	tools.WriteJsonOk(rw, res)
 }

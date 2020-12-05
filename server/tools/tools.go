@@ -6,18 +6,14 @@ import (
 	"net/http"
 )
 
-type errorObject struct {
-	Message string `json:"message"`
-}
-
 // WriteJsonOk sends 400 error response with a JSON object describing the error reason.
 func WriteJsonBadRequest(rw http.ResponseWriter, message string) {
 	writeJson(rw, http.StatusBadRequest, &errorObject{Message: message})
 }
 
 // WriteJsonOk sends 500 error response.
-func WriteJsonInternalError(rw http.ResponseWriter) {
-	writeJson(rw, http.StatusBadRequest, &errorObject{Message: "internal error happened"})
+func WriteJsonInternalError(rw http.ResponseWriter, message string) {
+	writeJson(rw, http.StatusInternalServerError, &errorObject{Message: message})
 }
 
 // WriteJsonOk sends 200 response to the client serializing the input object in JSON format.
