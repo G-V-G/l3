@@ -2,7 +2,7 @@
 
 **Run sql script:**
 
-`cd psql -f db/script.sql ...`
+`cd psql -U <username> -d <dbname> -f db/script.sql ...`
 
 **Or (in psql):**
 
@@ -16,7 +16,7 @@
 
 `node client/example`
 
-*Result:*
+**Result:**
 
 Adding a new forum (no args) 
 
@@ -161,13 +161,13 @@ Error: { status: 400, body: { message: 'No such forum' } }
 
 Getting forum (empty name) 
 
-Error: { status: 400, body: { message: 'No such forum' } } 
+Error: { status: 400, body: { message: 'Forum name is not provided' } } 
  
 =========================================================
 
 Getting forum (null name) 
 
-Error: { status: 400, body: { message: 'No such forum' } } 
+Error: { status: 400, body: { message: 'Forum name is not provided' } } 
  
 =========================================================
 
@@ -188,11 +188,9 @@ Result:
   status: 200,
   body: [
     { name: 'Bob', interests: [ 'Jojo References', 'Games' ] },
+    { name: 'Nick', interests: [ 'Games' ] },
     { name: 'Simon', interests: [ 'Books' ] },
-    { name: 'Mazur', interests: [ 'Tango', 'Books' ] },
-    { name: 'Marik', interests: [ 'Tango', 'Books' ] },
-    { name: 'Barbara', interests: [ 'golang' ] },
-    { name: 'Sasik', interests: [] }
+    { name: 'Barbara', interests: [ 'golang' ] }
   ]
 }
 
@@ -210,16 +208,9 @@ Result:
       users: [ 'Bob' ]
     },
     { name: 'Movies fan', Topic: 'Movies', users: [] },
-    {
-      name: 'Book enjoyer',
-      Topic: 'Books',
-      users: [ 'Simon', 'Mazur', 'Marik' ]
-    },
-    { name: 'Gaming', Topic: 'Games', users: [ 'Bob' ] },
-    { name: 'Film Lover', Topic: 'movies', users: [] },
-    { name: 'Gophers', Topic: 'golang', users: [ 'Barbara' ] },
-    { name: 'Gopher', Topic: "mazur's tango", users: [] },
-    { name: 'Zoom', Topic: 'balls', users: [] }
+    { name: 'Book enjoyer', Topic: 'Books', users: [ 'Simon' ] },
+    { name: 'Gaming', Topic: 'Games', users: [ 'Bob', 'Nick' ] },
+    { name: 'Gophers', Topic: 'golang', users: [ 'Barbara' ] }
   ]
 }
 
