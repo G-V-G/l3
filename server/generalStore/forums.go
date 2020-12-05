@@ -57,7 +57,7 @@ func (s *ForumStore) FindForumByName(name string) ([]*tools.Forum, error) {
 	var err error
 	var fullForums []*tools.Forum
 
-	if len(name) < 0 {
+	if len(name) == 0 {
 		textError = "Forum name is not provided"
 		err = fmt.Errorf(textError)
 		fullForums = make([]*tools.Forum, 0)
