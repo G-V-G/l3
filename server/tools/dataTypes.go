@@ -17,7 +17,7 @@ type Forum struct {
 
 //Forums JSON struct
 type Forums struct {
-	Forums []*Forum `json:"forums"`
+	ForumsArr []*Forum `json:"forums"`
 }
 
 //ResponseName JSON struct

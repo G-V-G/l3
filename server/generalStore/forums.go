@@ -15,7 +15,7 @@ func NewForumStore(db *sql.DB) *ForumStore {
 	return &ForumStore{Db: db}
 }
 
-func (s *ForumStore) ListForums() ([]*tools.Forum, error) {
+func (s *ForumStore) ListForums() (*tools.Forums, error) {
 	rows, err := s.Db.Query("SELECT * FROM forums")
 	if err != nil {
 		return nil, err
@@ -49,10 +49,12 @@ func (s *ForumStore) ListForums() ([]*tools.Forum, error) {
 			fullForums = append(fullForums, &fullForum)
 		}
 	}
-	return fullForums, err
+
+	result := &tools.Forums{fullForums}
+	return result, err
 }
 
-func (s *ForumStore) FindForumByName(name string) ([]*tools.Forum, error) {
+func (s *ForumStore) FindForumByName(name string) (*tools.Forums, error) {
 	var textError string
 	var err error
 	var fullForums []*tools.Forum
@@ -97,7 +99,9 @@ func (s *ForumStore) FindForumByName(name string) ([]*tools.Forum, error) {
 			Users: users}
 		fullForums = append(fullForums, &fullForum)
 	}
-	return fullForums, nil
+
+	result := &tools.Forums{fullForums}
+	return result, nil
 }
 
 func (s *ForumStore) FindForumByTopic(name string) ([]*tools.Forum, error) {
@@ -137,8 +141,8 @@ func (s *ForumStore) CreateForum(name, topicKeyword string) error {
 	if err != nil {
 		return fmt.Errorf("Forum with this name or topic already exists")
 	}
-	forum, err := s.FindForumByName(name)
-	_, err = s.Db.Exec(`INSERT INTO usersList (forumsID) VALUES ($1)`, forum[0].Id)
+	forums, err := s.FindForumByName(name)
+	_, err = s.Db.Exec(`INSERT INTO usersList (forumsID) VALUES ($1)`, forums.ForumsArr[0].Id)
 	return err
 }
 

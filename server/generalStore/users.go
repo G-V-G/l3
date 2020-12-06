@@ -15,7 +15,7 @@ func NewUserStore(db *sql.DB) *UserStore {
 	return &UserStore{Db: db}
 }
 
-func (s *UserStore) ListUsers() ([]*tools.User, error) {
+func (s *UserStore) ListUsers() (*tools.Users, error) {
 	rows, err := s.Db.Query("SELECT * FROM users")
 	if err != nil {
 		return nil, err
@@ -45,10 +45,12 @@ func (s *UserStore) ListUsers() ([]*tools.User, error) {
 			fullUsers = append(fullUsers, &fullUser)
 		}
 	}
-	return fullUsers, nil
+
+	result := &tools.Users{fullUsers}
+	return result, nil
 }
 
-func (s *UserStore) FindUserByName(name string) ([]*tools.User, error) {
+func (s *UserStore) FindUserByName(name string) (*tools.Users, error) {
 	var textError string
 	var err error
 	var fullUsers []*tools.User
@@ -91,7 +93,8 @@ func (s *UserStore) FindUserByName(name string) ([]*tools.User, error) {
 		fullUsers = append(fullUsers, &fullUser)
 	}
 	err = nil
-	return fullUsers, err
+	result := &tools.Users{fullUsers}
+	return result, err
 }
 
 func (s *UserStore) CreateUser(username string, interests []string) error {
@@ -111,13 +114,13 @@ func (s *UserStore) CreateUser(username string, interests []string) error {
 	if err != nil {
 		return fmt.Errorf("User with this name already exists")
 	}
-	user, err := s.FindUserByName(username)
+	users, err := s.FindUserByName(username)
 	for i := 0; i < len(interests); i++ {
 		_, err = s.Db.Exec(`INSERT INTO interestList (interest, userID) VALUES ($1, $2)`,
-			interests[i], user[0].Id)
+			interests[i], users.UsersArr[0].Id)
 		forum, indicate := store.FindForumByTopic(interests[i])
 		if indicate == nil {
-			err = store.AddUserToForum(forum[0].Id, user[0].Id)
+			err = store.AddUserToForum(forum[0].Id, users.UsersArr[0].Id)
 		}
 	}
 	return err

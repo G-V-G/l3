@@ -148,7 +148,9 @@ Getting user
 Result:
 {
   status: 200,
-  body: [ { name: 'Barbara', interests: [ 'golang' ] } ]
+  body: {
+    users: [ { name: 'Barbara', interests: [ 'golang' ] } ]
+  }
 }
 
 =========================================================
@@ -176,7 +178,9 @@ Getting forum
 Result:
 {
   status: 200,
-  body: [ { name: 'Gophers', Topic: 'golang', users: [ 'Barbara' ] } ]
+  body: {
+    forums: [ { name: 'Gophers', Topic: 'golang', users: [ 'Barbara' ] } ]
+  }
 }
 
 =========================================================
@@ -186,12 +190,14 @@ Getting all users
 Result:
 {
   status: 200,
-  body: [
-    { name: 'Bob', interests: [ 'Jojo References', 'Games' ] },
-    { name: 'Nick', interests: [ 'Games' ] },
-    { name: 'Simon', interests: [ 'Books' ] },
-    { name: 'Barbara', interests: [ 'golang' ] }
-  ]
+  body: {
+    users: [
+      { name: 'Bob', interests: [ 'Jojo References', 'Games' ] },
+      { name: 'Nick', interests: [ 'Games' ] },
+      { name: 'Simon', interests: [ 'Books' ] },
+      { name: 'Barbara', interests: [ 'golang' ] }
+    ]
+  }
 }
 
 =========================================================
@@ -201,17 +207,19 @@ Getting all forums
 Result:
 {
   status: 200,
-  body: [
-    {
-      name: 'Jojo References',
-      Topic: 'jojo bizzare adventure',
-      users: [ 'Bob' ]
-    },
-    { name: 'Movies fan', Topic: 'Movies', users: [] },
-    { name: 'Book enjoyer', Topic: 'Books', users: [ 'Simon' ] },
-    { name: 'Gaming', Topic: 'Games', users: [ 'Bob', 'Nick' ] },
-    { name: 'Gophers', Topic: 'golang', users: [ 'Barbara' ] }
-  ]
+  body: {
+    forums: [
+      {
+        name: 'Jojo References',
+        Topic: 'jojo bizzare adventure',
+        users: [ 'Bob' ]
+      },
+      { name: 'Movies fan', Topic: 'Movies', users: [] },
+      { name: 'Book enjoyer', Topic: 'Books', users: [ 'Simon' ] },
+      { name: 'Gaming', Topic: 'Games', users: [ 'Bob', 'Nick' ] },
+      { name: 'Gophers', Topic: 'golang', users: [ 'Barbara' ] }
+    ]
+  }
 }
 
 =========================================================
