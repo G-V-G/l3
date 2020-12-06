@@ -2,7 +2,7 @@
 
 **Run sql script:**
 
-`cd psql -U <username> -d <dbname> -f db/script.sql ...`
+`psql -U <username> -d <dbname> -f db/script.sql ...`
 
 **Or (in psql):**
 
